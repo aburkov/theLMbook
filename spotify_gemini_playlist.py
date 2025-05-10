@@ -1,3 +1,5 @@
+# Read instructions here: https://x.com/burkov/status/1921303279562064098
+
 import os
 import json
 import random
