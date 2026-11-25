@@ -411,8 +411,7 @@ def compute_log_probabilities(model, input_ids, attention_mask, logits_to_keep):
         1. We call the model with logits_to_keep + 1 so that the model outputs one extra logit than needed.
            This is common in next-token prediction setups.
         2. We slice off the last logit along the sequence dimension because it does not correspond to any input token.
-        3. We then restrict both the input_ids and logits to the last logits_to_keep tokens, which should
-           correspond to the generated completion portion.
+        3. We select the last logits_to_keep input IDs to align them with the logits.
         4. Finally, we use the selective_log_softmax to compute log probabilities only for those tokens.
     """
     # Run the model forward pass and obtain logits.
@@ -420,17 +419,14 @@ def compute_log_probabilities(model, input_ids, attention_mask, logits_to_keep):
         input_ids=input_ids,
         attention_mask=attention_mask,
         logits_to_keep=logits_to_keep + 1  # Request one extra logit for proper alignment.
-    ).logits  # Shape: (batch_size, total_seq_len, vocab_size)
+    ).logits  # Shape: (batch_size, logits_to_keep + 1, vocab_size)
 
     # Remove the last logit as it does not have a corresponding target token.
-    logits = logits[:, :-1, :]  # New shape: (batch_size, total_seq_len - 1, vocab_size)
+    logits = logits[:, :-1, :]  # Shape: (batch_size, logits_to_keep, vocab_size)
 
     # Slice the input_ids to keep only the last logits_to_keep tokens.
     # This corresponds to the generated completion tokens.
     input_ids = input_ids[:, -logits_to_keep:]  # Shape: (batch_size, logits_to_keep)
-
-    # Also slice the logits to keep only those corresponding to the completion tokens.
-    logits = logits[:, -logits_to_keep:, :]  # Shape: (batch_size, logits_to_keep, vocab_size)
 
     # Compute and return the log probabilities for the selected tokens.
     return selective_log_softmax(logits, input_ids)
@@ -502,8 +498,8 @@ def generate_completions(model, tokenizer, prompts, num_generations=4, max_compl
     device = next(model.parameters()).device
 
     # Tokenize the list of prompts with padding. The padding_side="left" ensures alignment on the right.
-    tokenizer.padding_side  = "left"
-    inputs = tokenizer(prompts, return_tensors="pt", padding=True, padding_side="left")
+    tokenizer.padding_side = "left"
+    inputs = tokenizer(prompts, return_tensors="pt", padding=True)
     prompt_ids = inputs["input_ids"].to(device)      # Shape: (batch_size, prompt_seq_len)
     prompt_mask = inputs["attention_mask"].to(device)  # Shape: (batch_size, prompt_seq_len)
     prompt_length = prompt_ids.size(1)  # Save the prompt length to later separate prompt from completion.
@@ -547,9 +543,6 @@ def generate_rollout_data(model, ref_model, tokenizer, batch_samples, num_genera
     Returns:
         A dictionary with rollout data including both old and reference log probabilities.
     """
-    tokenizer.padding_side  = "left"
-    device = next(model.parameters()).device
-
     # Extract prompts and answers.
     prompts = [sample["prompt"] if isinstance(sample, dict) else sample[0] for sample in batch_samples]
     answers = [sample["answer"] if isinstance(sample, dict) else sample[1] for sample in batch_samples]
@@ -764,24 +757,11 @@ def train_with_grpo(model, tokenizer, train_data, num_iterations=1,
     return policy_model
 
 def optimize_model_memory(model):
-    """Apply memory optimizations like proper gradient checkpointing setup"""
-    # Ensure model is in training mode
+    """Trade recomputation for memory during training."""
     model.train()
-    
-    # Disable caching for gradient checkpointing
     model.config.use_cache = False
-    
-    # Enable gradient checkpointing
-    model.gradient_checkpointing_enable()
-    
-    # Enable input gradients properly
-    if hasattr(model, "enable_input_require_grads"):
-        model.enable_input_require_grads()
-    else:
-        def make_inputs_require_grad(module, input, output):
-            output.requires_grad_(True)
-        model.get_input_embeddings().register_forward_hook(make_inputs_require_grad)
-    
+    # Non-reentrant checkpointing also works with frozen input embeddings.
+    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     return model
 
 def main():
