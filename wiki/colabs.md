@@ -1,5 +1,6 @@
 # Colab Notebooks
 
+- [Chapter 1. Logistic Regression and a Feedforward Neural Network](https://github.com/aburkov/theLMbook/blob/main/linear_and_fnn_models.ipynb)
 - [2.3. Byte-Pair Encoding](https://github.com/aburkov/theLMbook/blob/main/byte_pair_encoding.ipynb)
 - [2.5. Count-Based Language Model](https://github.com/aburkov/theLMbook/blob/main/count_language_model.ipynb)
 - [3.6. Training an RNN Language Model](https://github.com/aburkov/theLMbook/blob/main/news_RNN_language_model.ipynb)
