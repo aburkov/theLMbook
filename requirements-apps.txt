@@ -1,0 +1,14 @@
+# Dependencies for the standalone side-app scripts.
+# Install on top of requirements.txt only if you run these:
+#   spotify_gemini_playlist.py  -> spotipy, python-dotenv, requests (OpenRouter API)
+#   openclaw.py                 -> google-genai, python-dotenv, playwright (+ chromium)
+
+# spotify_gemini_playlist.py
+spotipy
+python-dotenv
+requests
+
+# openclaw.py
+google-genai
+playwright
+# After install run once:  playwright install chromium

@@ -2,15 +2,15 @@
 """
 Minimal browser agent: Gemini Flash + Playwright headless browser.
 
-    pip install google-genai playwright && playwright install chromium
+    pip install google-genai playwright python-dotenv && playwright install chromium
 """
 
 import os, json, asyncio
+from dotenv import load_dotenv
 from playwright.async_api import async_playwright, Page
 from google import genai
 from google.genai import types
 
-GOOGLE_API_KEY = "USE_YOUR_API_KEY"
 MODEL = "gemini-3-flash-preview"
 MAX_STEPS = 50
 OUTPUT_DIR = "./browser_output"
@@ -123,7 +123,11 @@ class Browser:
 
 async def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    client = genai.Client(api_key=GOOGLE_API_KEY)
+    load_dotenv()
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise SystemExit("Set GOOGLE_API_KEY in your environment or .env file.")
+    client = genai.Client(api_key=api_key)
     browser = Browser()
     await browser.start()
 

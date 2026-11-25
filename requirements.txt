@@ -1,0 +1,44 @@
+# Core dependencies for The Hundred-Page Language Models Book examples
+# (notebooks + GRPO.py / embedding_vs_linear.py / quadratic_loss.py)
+#
+# Use Python 3.12 for the local setup. See SETUP.md.
+# flash-attn is intentionally NOT here: it is GPU/CUDA-only and does not build
+# on macOS/CPU. Install it manually on a CUDA box if a notebook asks for it.
+
+# Deep learning
+torch>=2.5.1
+
+# Hugging Face stack
+transformers==4.51.3
+datasets>=3.0,<4
+evaluate>=0.4
+accelerate==1.4.0
+peft==0.15.2
+trl==0.17.0
+
+# Tokenizers / model loading helpers
+sentencepiece
+protobuf
+
+# Embeddings example
+FlagEmbedding
+
+# Dataset download helper
+kagglehub
+
+# Classic ML / data / plotting
+scikit-learn
+numpy
+pandas
+matplotlib
+tqdm
+
+# LLM-as-labeler example
+openai
+
+# Experiment tracking (optional at runtime; imported by GRPO notebooks)
+wandb
+
+# Run notebooks locally
+jupyterlab
+ipykernel

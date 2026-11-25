@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+grpo_finetuned_model/
+math_solver_model/
+sft_output/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets / config
+.env
+.cache-*
+
+# ML / experiment artifacts
+wandb/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+checkpoints/
+grpo_finetuned_model/
+math_solver_model/
+sft_output/
+outputs/
+runs/
+.cache/
+data/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
